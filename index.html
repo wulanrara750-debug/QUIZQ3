@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Test Interaktif: Kantin Sehat Sekolah</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        @keyframes pulse-slow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .animate-pulse-slow { animation: pulse-slow 3s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-sky-50 to-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col justify-between">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-30 px-4 py-3 shadow-sm">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="bg-blue-600 text-white font-black px-3 py-1 rounded-lg text-xs shadow">POST-TEST</span>
+                <h1 class="font-bold text-slate-800 text-sm md:text-base hidden sm:block">Kantin Sehat Sekolah • Kelas V</h1>
+            </div>
+            
+            <!-- CONTROLS: AUDIO & TIMER -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAudioBGM()" id="btnBgm" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold transition flex items-center space-x-1.5 border">
+                    <i class="fas fa-music text-indigo-500"></i>
+                    <span id="bgmStatus">Musik: Off</span>
+                </button>
+                <div id="timerDisplay" class="hidden bg-amber-100 text-amber-800 font-mono font-bold px-3 py-1 rounded-full text-xs border border-amber-300">
+                    <i class="far fa-clock mr-1"></i><span id="quizTimer">00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER UTAMA -->
+    <main class="max-w-4xl mx-auto w-full p-4 md:p-6 flex-grow">
+
+        <!-- SCREEN 1: IDENTITAS PESERTA -->
+        <div id="screenIntro" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100 text-center max-w-lg mx-auto animate-pulse-slow my-6">
+            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+                <i class="fas fa-store"></i>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mb-2">Post-Test Matematika</h2>
+            <p class="text-slate-600 text-xs md:text-sm mb-6">Kantin Sehat Sekolah • Kelas V SD<br>Evaluasi Konsep &amp; Sifat Operasi Hitung Bilangan Cacah</p>
+            
+            <div class="space-y-4 text-left bg-slate-50 p-5 rounded-xl border border-slate-200">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="inputNama" class="w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Contoh: Budi Santoso">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nomor Presensi / Kelas</label>
+                    <input type="text" id="inputAbsen" class="w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Contoh: 08 / V-A">
+                </div>
+                <button onclick="startQuizSession()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <span>Mulai Kerjakan Post-Test</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: AREA SOAL INTERAKTIF (CARD SLIDE) -->
+        <div id="screenQuiz" class="hidden space-y-4">
+            
+            <!-- PROGRESS BAR & WACANA TRIGGER -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex-grow">
+                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                        <span id="questionCategory">Bagian I: Pilihan Ganda</span>
+                        <span id="progressText">Soal 1 dari 15</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-full transition-all duration-300" style="width: 6.6%"></div>
+                    </div>
+                </div>
+                <button onclick="openWacanaModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow flex items-center justify-center space-x-1.5 transition">
+                    <i class="fas fa-book-open"></i>
+                    <span>Lihat Wacana</span>
+                </button>
+            </div>
+
+            <!-- CARD SOAL -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 relative">
+                
+                <!-- HEADER SOAL & VOICE OVER -->
+                <div class="flex justify-between items-center mb-4 pb-3 border-b">
+                    <span id="questionBadge" class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Soal #1</span>
+                    <button onclick="readQuestionVoice()" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full text-xs font-semibold transition flex items-center space-x-1">
+                        <i class="fas fa-volume-high"></i>
+                        <span>Baca Soal</span>
+                    </button>
+                </div>
+
+                <!-- TEKS SOAL -->
+                <div id="questionText" class="text-slate-800 font-semibold text-base md:text-lg mb-6 leading-relaxed whitespace-pre-line">
+                    <!-- Dynamic Text -->
+                </div>
+
+                <!-- CONTAINER JAWABAN DINAMIS -->
+                <div id="answerOptionsContainer" class="space-y-3">
+                    <!-- Dynamic Options -->
+                </div>
+
+                <!-- BOTTOM NAVIGATION -->
+                <div class="flex justify-between items-center mt-8 pt-4 border-t">
+                    <button id="btnPrev" onclick="navigateQuestion(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-sm transition flex items-center space-x-1 disabled:opacity-40">
+                        <i class="fas fa-chevron-left"></i> <span>Sebelumnya</span>
+                    </button>
+
+                    <button onclick="togglePaletteModal()" class="text-slate-500 hover:text-slate-700 font-bold text-xs bg-slate-100 px-3 py-2 rounded-lg border">
+                        <i class="fas fa-th mr-1"></i> Navigasi Soal
+                    </button>
+
+                    <button id="btnNext" onclick="navigateQuestion(1)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition flex items-center space-x-1">
+                        <span>Berikutnya</span> <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button id="btnFinish" onclick="submitFinalQuiz()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition flex items-center space-x-1">
+                        <span>Selesai &amp; Kirim</span> <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RINGKASAN HASIL (RESULT CARD) -->
+        <div id="screenResult" class="hidden bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center border max-w-xl mx-auto my-6">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mb-1">Post-Test Selesai!</h2>
+            <p id="studentResultSummary" class="text-slate-500 text-xs md:text-sm mb-6">Rekapitulasi Hasil Belajar Siswa</p>
+
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-2xl shadow-lg mb-6">
+                <p class="text-xs uppercase font-bold tracking-widest text-indigo-300">Nilai Akhir (Skala 100)</p>
+                <div id="finalGradeDisplay" class="text-6xl font-black my-2 text-yellow-400">0</div>
+                <p id="finalPointsDisplay" class="text-sm font-medium text-slate-300">Skor Diperoleh: 0 / 45 Poin</p>
+                <p id="finalTimeDisplay" class="text-xs text-indigo-200 mt-2"><i class="far fa-clock mr-1"></i>Durasi: 00:00</p>
+            </div>
+
+            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium mb-6">
+                <i class="fas fa-check-circle mr-1 text-emerald-600"></i>
+                Data rekap item soal ($Q1 - Q15$) telah dikirim ke Google Sheets guru untuk analisis validitas &amp; reliabilitas.
+            </div>
+
+            <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow">
+                <i class="fas fa-redo mr-2"></i>Tutup &amp; Ulangi Halaman
+            </button>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center py-4 text-xs text-slate-400 border-t bg-white">
+        Media Pembelajaran Matematika • Kantin Sehat Sekolah SD
+    </footer>
+
+    <!-- MODAL 1: WACANA POP-UP -->
+    <div id="modalWacana" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="font-bold text-lg text-emerald-800 flex items-center">
+                    <i class="fas fa-store mr-2 text-emerald-600"></i>Wacana: Kantin Sehat Sekolah
+                </h3>
+                <button onclick="closeWacanaModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="text-sm text-slate-700 space-y-3">
+                <p>Di SD Maju Jaya, kelas 5 diberi tugas untuk mengelola <strong>"Kantin Sehat Sekolah"</strong> setiap hari Jumat. Beberapa jajanan sehat yang dijual diantaranya:</p>
+                
+                <div class="overflow-x-auto border rounded-xl">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead class="bg-emerald-600 text-white uppercase">
+                            <tr>
+                                <th class="p-2.5">Barang</th>
+                                <th class="p-2.5">Harga Satuan</th>
+                                <th class="p-2.5">Jumlah Terjual</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y bg-slate-50">
+                            <tr><td class="p-2.5 font-bold">Roti</td><td class="p-2.5">Rp4.500,00</td><td class="p-2.5 font-semibold text-blue-600">50 buah</td></tr>
+                            <tr><td class="p-2.5 font-bold">Susu kotak</td><td class="p-2.5">Rp3.500,00</td><td class="p-2.5 font-semibold text-blue-600">40 buah</td></tr>
+                            <tr><td class="p-2.5 font-bold">Buah potong</td><td class="p-2.5">Rp2.500,00</td><td class="p-2.5 font-semibold text-blue-600">20 buah</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs bg-amber-50 text-amber-900 p-3 rounded-lg border border-amber-200">
+                    <strong>Catatan Modal:</strong> Modal awal kegiatan ini adalah <strong>Rp250.000,00</strong>. Keuntungan digunakan untuk menambah kas kelas atau dibagikan kepada anggota kelompok.
+                </p>
+            </div>
+            <button onclick="closeWacanaModal()" class="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm transition">Tutup Wacana</button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: NAVIGASI PALET NOMOR SOAL -->
+    <div id="modalPalette" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="font-bold text-slate-800 text-base"><i class="fas fa-th mr-2 text-blue-600"></i>Navigasi Nomor Soal</h3>
+                <button onclick="togglePaletteModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="paletteGrid" class="grid grid-cols-5 gap-2.5 mb-5">
+                <!-- Grid buttons rendered via JS -->
+            </div>
+            <button onclick="togglePaletteModal()" class="w-full bg-slate-100 text-slate-700 font-bold py-2 rounded-xl text-xs">Tutup</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT UTAMA & LOGIKA KUIS -->
+    <script>
+        // ==========================================
+        // 1. URL GOOGLE APPS SCRIPT LENGKAP
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUKD33bdkwtjXMDP6d3ESil5xpTWMa80-TDcwL0Rie1s3RcPCtxWSR9tvBBMyh2yepXg/exec';
+
+        // ==========================================
+        // 2. DATASET KUIS (Q1 - Q15)
+        // ==========================================
+        const quizData = [
+            // Q1 - Q5: PILIHAN GANDA (1 Poin)
+            { id: 1, type: 'mc', category: 'Bagian I: Pilihan Ganda', question: 'Hitung total penjualan roti pada kegiatan "Kantin Sehat Sekolah" tersebut. Jika kamu mengalikan angka 1 pada hasil yang diperoleh, maka hasil akhirnya menjadi ....', options: ['A. Rp1,00', 'B. Rp205.000,00', 'C. Rp215.000,00', 'D. Rp225.000,00'], answer: 'D', points: 1 },
+            { id: 2, type: 'mc', category: 'Bagian I: Pilihan Ganda', question: 'Total penjualan susu kotak dan buah potong dapat dihitung dengan cara berikut:\n140.000 + 50.000 atau 50.000 + 140.000.\nOperasi hitung di atas merupakan contoh dari sifat ....', options: ['A. Asosiatif', 'B. Komutatif', 'C. Distributif', 'D. Identitas'], answer: 'B', points: 1 },
+            { id: 3, type: 'mc', category: 'Bagian I: Pilihan Ganda', question: 'Tentukan urutan sifat operasi hitung yang tepat untuk pernyataan (a) sampai (g) berikut secara berturut-turut!\na. (4.000 + 3.500) + 2.500 = 4.000 + (3.500 + 2.500)\nb. 10 × (4.000 + 3.500) = (10 × 4.000) + (10 × 3.500)\nc. 2.500 × 20 = 20 × 2.500\nd. 4.000 + 0 = 4.000\ne. 3.500 – 3.500 = 0\nf. 2.500 × 1 = 2.500\ng. 40 × 1/40 = 1', options: ['A. Distributif, Asosiatif, Komutatif, Invers, Identitas, Invers, Identitas', 'B. Asosiatif, Distributif, Komutatif, Identitas, Invers, Identitas, Invers', 'C. Komutatif, Asosiatif, Distributif, Identitas, Invers, Identitas, Invers', 'D. Asosiatif, Komutatif, Distributif, Identitas, Invers, Invers, Identitas'], answer: 'B', points: 1 },
+            { id: 4, type: 'mc', category: 'Bagian I: Pilihan Ganda', question: 'Kalimat matematika yang tepat berdasarkan sifat distributif dari "5 paket berisi 2 roti dan 1 susu kotak" yaitu ....', options: ['A. (2 × 4.500) + (1 × 3.500) = Rp12.500,00', 'B. 5 × (2 × 4.500) + (1 × 3.500) = Rp48.500,00', 'C. 5 × (2 × 4.500 + 1 × 3.500) = Rp25.000,00', 'D. 5 × [(2 × 4.500) + (1 × 3.500)] = Rp62.500,00'], answer: 'D', points: 1 },
+            { id: 5, type: 'mc', category: 'Bagian I: Pilihan Ganda', question: 'Seorang siswa membeli 6 roti seharga Rp4.500,00. Ia menghitung total uang yang harus dibayar dengan dua cara, yaitu penjumlahan berulang dan perkalian. Kesimpulan yang tepat adalah ....', options: ['A. Penjumlahan berulang menghasilkan Rp27.000,00, sedangkan perkalian menghasilkan Rp24.000,00, sehingga keduanya berbeda.', 'B. Keduanya menghasilkan Rp27.000,00; perkalian merupakan bentuk singkat dari penjumlahan berulang.', 'C. Keduanya menghasilkan Rp27.000,00 karena perkalian sama dengan pembagian berulang.', 'D. Perkalian selalu menghasilkan angka lebih besar dibandingkan penjumlahan berulang.'], answer: 'B', points: 1 },
+
+            // Q6 - Q10: PILIHAN GANDA KOMPLEKS (4 Poin Maks)
+            { id: 6, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Bandingkan hasil dari (28 + 35) : 7 dengan 28 + (35 : 7). Tentukan Benar atau Salah!', statements: [{ text: 'a. (28 + 35) : 7 hasilnya adalah 9.', answer: 'Benar' }, { text: 'b. 28 + (35 : 7) hasilnya adalah 33.', answer: 'Benar' }, { text: 'c. Kedua cara tersebut menghasilkan nilai yang sama.', answer: 'Salah' }, { text: 'd. Urutan pengerjaan operasi hitung tidak memengaruhi hasil akhir.', answer: 'Salah' }] },
+            { id: 7, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Perhatikan langkah-langkah menghitung keuntungan Kantin Sehat Sekolah.', statements: [{ text: 'a. Total penjualan seluruh barang adalah Rp405.000,00.', answer: 'Salah' }, { text: 'b. Keuntungan yang diperoleh adalah Rp165.000.', answer: 'Benar' }, { text: 'c. Total penjualan seluruh barang adalah Rp415.000,00.', answer: 'Benar' }, { text: 'd. Bagian untuk kas kelas sama besar dengan bagian anggota, yaitu Rp82.500,00.', answer: 'Benar' }] },
+            { id: 8, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Perhatikan: (140.000 + 225.000) + 50.000 = 140.000 + (225.000 + 50.000).', statements: [{ text: 'a. Pernyataan tersebut menunjukkan sifat distributif penjumlahan.', answer: 'Salah' }, { text: 'b. Pernyataan tersebut menunjukkan sifat asosiatif penjumlahan.', answer: 'Benar' }, { text: 'c. Hasil penjumlahan kedua ruas adalah sama, yaitu Rp415.000,00.', answer: 'Salah' }, { text: 'd. Jika urutan dua bilangan yang dijumlahkan ditukar, hasilnya akan berubah.', answer: 'Salah' }] },
+            { id: 9, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Harga 1 buah potong adalah Rp2.500,00 (2.500 × 1 = 2.500).', statements: [{ text: 'a. Kalimat matematika tersebut menunjukkan sifat identitas perkalian.', answer: 'Benar' }, { text: 'b. Bilangan dikali 1 hasilnya adalah bilangan itu sendiri.', answer: 'Benar' }, { text: 'c. Sifat identitas perkalian juga melibatkan bilangan 0 sebagai unsur identitas.', answer: 'Salah' }, { text: 'd. Sifat ini berbeda dengan sifat identitas penjumlahan yang melibatkan 0.', answer: 'Benar' }] },
+            { id: 10, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Perhatikan pernyataan: jika dua bilangan cacah dijumlahkan/dikalikan, hasilnya berupa bilangan cacah juga.', statements: [{ text: 'a. Pernyataan menunjukkan sifat tertutup (closure) bilangan cacah.', answer: 'Benar' }, { text: 'b. Sifat tertutup berarti hasil operasi berada dalam himpunan bilangan yang sama.', answer: 'Benar' }, { text: 'c. Sifat tertutup hanya berlaku untuk operasi pengurangan bilangan cacah.', answer: 'Salah' }, { text: 'd. Jika dua bilangan cacah dikalikan, hasilnya bisa saja pecahan.', answer: 'Salah' }] },
+
+            // Q11 - Q15: URAIAN SINGKAT (4 Poin Maks)
+            { id: 11, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika total hasil penjualan semua barang dikurangi modal hasilnya akan dibagikan kepada lima anggota kelompok, berapakah yang diterima masing-masing anggota?', maxScore: 4, keywords: ['33.000', '33000'] },
+            { id: 12, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika keuntungan yang diperoleh digunakan untuk membeli 20 roti dan 20 susu kotak, apakah uang mereka cukup?', maxScore: 4, keywords: ['cukup', '5.000', '5000', '160.000'] },
+            { id: 13, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Seorang siswa membeli 2 roti, 3 susu kotak, dan 4 buah potong dengan uang Rp25.000,00. Berapakah total belanjaan dan bagaimana status uangnya (kurang/pas/sisa)?', maxScore: 4, keywords: ['29.500', '29500', 'kurang', '4.500'] },
+            { id: 14, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Salah satu anggota kelompok menggunakan bagian keuntungannya (dari soal 11) untuk membeli 2 roti dan 3 buah potong. Berapakah sisa uangnya?', maxScore: 4, keywords: ['16.500', '16500'] },
+            { id: 15, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika sebelum dibagikan, disisihkan Rp30.000 dari keuntungan untuk modal berikutnya, berapakah yang diterima masing-masing dari 5 anggota sekarang?', maxScore: 4, keywords: ['27.000', '27000', '135.000'] }
+        ];
+
+        // ==========================================
+        // 3. STATE & AUDIO SYSTEM (WEB AUDIO API)
+        // ==========================================
+        let currentIdx = 0;
+        let userAnswers = {};
+        let studentProfile = { name: '', absen: '' };
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let audioCtx = null;
+        let bgmInterval = null;
+        let isBgmPlaying = false;
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSoundTone(freq, duration, type = 'sine') {
+            try {
+                initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playClickSound() { playSoundTone(600, 0.08, 'triangle'); }
+        function playSuccessChime() {
+            playSoundTone(523.25, 0.1, 'sine');
+            setTimeout(() => playSoundTone(659.25, 0.15, 'sine'), 100);
+        }
+
+        function toggleAudioBGM() {
+            initAudioContext();
+            isBgmPlaying = !isBgmPlaying;
+            const btnText = document.getElementById('bgmStatus');
+            if (isBgmPlaying) {
+                btnText.innerText = "Musik: On";
+                bgmInterval = setInterval(() => {
+                    playSoundTone(261.63, 0.3, 'sine');
+                    setTimeout(() => playSoundTone(329.63, 0.3, 'sine'), 400);
+                }, 1600);
+            } else {
+                btnText.innerText = "Musik: Off";
+                clearInterval(bgmInterval);
+            }
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const speech = new SpeechSynthesisUtterance(text);
+                speech.lang = 'id-ID';
+                speech.rate = 0.95;
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        function readQuestionVoice() {
+            const q = quizData[currentIdx];
+            let cleanText = q.question.replace(/\n/g, ' ');
+            speakText(`Soal nomor ${currentIdx + 1}. ${cleanText}`);
+        }
+
+        // ==========================================
+        // 4. LOGIKA KUIS & RENDERER SLIDE
+        // ==========================================
+        function startQuizSession() {
+            const nama = document.getElementById('inputNama').value.trim();
+            const absen = document.getElementById('inputAbsen').value.trim();
+
+            if (!nama || !absen) {
+                alert('Silakan isi nama lengkap dan nomor presensi terlebih dahulu!');
+                return;
+            }
+
+            studentProfile.name = nama;
+            studentProfile.absen = absen;
+            initAudioContext();
+            playClickSound();
+
+            document.getElementById('screenIntro').classList.add('hidden');
+            document.getElementById('screenQuiz').classList.remove('hidden');
+            document.getElementById('timerDisplay').classList.remove('hidden');
+
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('quizTimer').innerText = `${mins}:${secs}`;
+            }, 1000);
+
+            renderQuestion(0);
+        }
+
+        function renderQuestion(index) {
+            currentIdx = index;
+            const q = quizData[index];
+
+            document.getElementById('questionCategory').innerText = q.category;
+            document.getElementById('progressText').innerText = `Soal ${index + 1} dari ${quizData.length}`;
+            document.getElementById('progressBar').style.width = `${((index + 1) / quizData.length) * 100}%`;
+            document.getElementById('questionBadge').innerText = `Soal #${index + 1}`;
+            document.getElementById('questionText').innerText = q.question;
+
+            const container = document.getElementById('answerOptionsContainer');
+            container.innerHTML = '';
+
+            // Render opsi jawaban per tipe soal
+            if (q.type === 'mc') {
+                q.options.forEach(opt => {
+                    const letter = opt.charAt(0);
+                    const isChecked = userAnswers[`q${q.id}`] === letter;
+                    const optId = `opt_${q.id}_${letter}`;
+                    container.innerHTML += `
+                        <label for="${optId}" onclick="playClickSound()" class="flex items-center p-3.5 rounded-xl border-2 transition cursor-pointer hover:bg-blue-50/50 ${isChecked ? 'border-blue-600 bg-blue-50 font-semibold' : 'border-slate-200'}">
+                            <input type="radio" id="${optId}" name="q_${q.id}" value="${letter}" ${isChecked ? 'checked' : ''} onchange="saveMcAnswer(${q.id}, '${letter}')" class="w-4 h-4 text-blue-600">
+                            <span class="ml-3 text-sm text-slate-700">${opt}</span>
+                        </label>
+                    `;
+                });
+            } else if (q.type === 'complex') {
+                let tableHtml = `<div class="overflow-x-auto border rounded-xl"><table class="w-full text-xs text-left"><thead class="bg-slate-100"><tr><th class="p-3">Pernyataan</th><th class="p-3 text-center w-24">Benar</th><th class="p-3 text-center w-24">Salah</th></tr></thead><tbody class="divide-y">`;
+                q.statements.forEach((st, idx) => {
+                    const key = `q${q.id}_s${idx}`;
+                    const val = userAnswers[key] || '';
+                    tableHtml += `
+                        <tr>
+                            <td class="p-3 font-medium text-slate-700">${st.text}</td>
+                            <td class="p-3 text-center">
+                                <input type="radio" name="${key}" value="Benar" ${val === 'Benar' ? 'checked' : ''} onchange="saveComplexAnswer('${key}', 'Benar')" class="w-4 h-4 text-emerald-600">
+                            </td>
+                            <td class="p-3 text-center">
+                                <input type="radio" name="${key}" value="Salah" ${val === 'Salah' ? 'checked' : ''} onchange="saveComplexAnswer('${key}', 'Salah')" class="w-4 h-4 text-rose-600">
+                            </td>
+                        </tr>
+                    `;
+                });
+                tableHtml += `</tbody></table></div>`;
+                container.innerHTML = tableHtml;
+            } else if (q.type === 'essay') {
+                const val = userAnswers[`q${q.id}`] || '';
+                container.innerHTML = `
+                    <textarea oninput="saveEssayAnswer(${q.id}, this.value)" rows="4" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" placeholder="Tuliskan langkah penyelesaian dan hasil akhir kamu secara jelas...">${val}</textarea>
+                `;
+            }
+
+            // Update Navigasi
+            document.getElementById('btnPrev').disabled = (index === 0);
+            if (index === quizData.length - 1) {
+                document.getElementById('btnNext').classList.add('hidden');
+                document.getElementById('btnFinish').classList.remove('hidden');
+            } else {
+                document.getElementById('btnNext').classList.remove('hidden');
+                document.getElementById('btnFinish').classList.add('hidden');
+            }
+        }
+
+        function saveMcAnswer(qId, val) { userAnswers[`q${qId}`] = val; }
+        function saveComplexAnswer(key, val) { userAnswers[key] = val; }
+        function saveEssayAnswer(qId, val) { userAnswers[`q${qId}`] = val; }
+
+        function navigateQuestion(direction) {
+            playClickSound();
+            const target = currentIdx + direction;
+            if (target >= 0 && target < quizData.length) {
+                renderQuestion(target);
+            }
+        }
+
+        // ==========================================
+        // 5. PERHITUNGAN SKOR RUMUS: (SKOR / 45) * 100
+        // ==========================================
+        function submitFinalQuiz() {
+            if (!confirm('Apakah kamu sudah yakin ingin menyelesaikan seluruh Post-Test ini?')) return;
+
+            clearInterval(timerInterval);
+            playSuccessChime();
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+            let itemScores = {};
+            let totalEarnedScore = 0;
+
+            quizData.forEach(q => {
+                if (q.type === 'mc') {
+                    const ans = userAnswers[`q${q.id}`];
+                    const pts = (ans === q.answer) ? 1 : 0;
+                    itemScores[`q${q.id}`] = pts;
+                    totalEarnedScore += pts;
+                } else if (q.type === 'complex') {
+                    let pts = 0;
+                    q.statements.forEach((st, idx) => {
+                        const ans = userAnswers[`q${q.id}_s${idx}`];
+                        if (ans === st.answer) pts += 1;
+                    });
+                    itemScores[`q${q.id}`] = pts; // Max 4 pts per item
+                    totalEarnedScore += pts;
+                } else if (q.type === 'essay') {
+                    const text = (userAnswers[`q${q.id}`] || '').toLowerCase();
+                    let pts = 0;
+                    if (text.trim().length > 0) {
+                        let matched = q.keywords.some(kw => text.includes(kw));
+                        pts = matched ? 4 : 2; // Memberikan poin 4 jika tepat atau 2 jika ada jawaban
+                    }
+                    itemScores[`q${q.id}`] = pts;
+                    totalEarnedScore += pts;
+                }
+            });
+
+            // RUMUS RESMI: (SKOR DIPEROLEH / 45) * 100
+            const finalGrade = Math.round((totalEarnedScore / 45) * 100);
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            const durationFormatted = `${mins} menit ${secs} detik`;
+
+            // Tampilkan Layar Hasil
+            document.getElementById('screenQuiz').classList.add('hidden');
+            document.getElementById('screenResult').classList.remove('hidden');
+            document.getElementById('finalGradeDisplay').innerText = finalGrade;
+            document.getElementById('finalPointsDisplay').innerText = `Skor Diperoleh: ${totalEarnedScore} / 45 Poin`;
+            document.getElementById('finalTimeDisplay').innerHTML = `<i class="far fa-clock mr-1"></i>Durasi Pengerjaan: ${durationFormatted}`;
+            document.getElementById('studentResultSummary').innerText = `Siswa: ${studentProfile.name} (${studentProfile.absen})`;
+
+            speakText(`Kuis selesai. Selamat ${studentProfile.name}, nilai akhir post test kamu adalah ${finalGrade}`);
+
+            // KIRIM DATA REKAP ITEM-LEVEL KE GOOGLE SHEETS
+            const payload = {
+                timestamp: new Date().toLocaleString('id-ID'),
+                sesi: 'Post-Test',
+                name: studentProfile.name,
+                absen: studentProfile.absen,
+                scorePoints: totalEarnedScore,
+                grade: finalGrade,
+                durationFormatted: durationFormatted,
+                ...itemScores
+            };
+
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(err => console.error('Gagal kirim ke Apps Script:', err));
+            }
+        }
+
+        // ==========================================
+        // 6. POPUP WACANA & NAVIGASI PALET
+        // ==========================================
+        function openWacanaModal() { document.getElementById('modalWacana').classList.remove('hidden'); }
+        function closeWacanaModal() { document.getElementById('modalWacana').classList.add('hidden'); }
+
+        function togglePaletteModal() {
+            const modal = document.getElementById('modalPalette');
+            if (modal.classList.contains('hidden')) {
+                const grid = document.getElementById('paletteGrid');
+                grid.innerHTML = '';
+                quizData.forEach((q, idx) => {
+                    let answered = false;
+                    if (q.type === 'mc' && userAnswers[`q${q.id}`]) answered = true;
+                    if (q.type === 'complex' && userAnswers[`q${q.id}_s0`]) answered = true;
+                    if (q.type === 'essay' && userAnswers[`q${q.id}`]) answered = true;
+
+                    grid.innerHTML += `
+                        <button onclick="renderQuestion(${idx}); togglePaletteModal();" class="p-2.5 rounded-xl font-bold text-xs border ${idx === currentIdx ? 'bg-blue-600 text-white border-blue-600' : (answered ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700')}">
+                            ${idx + 1}
+                        </button>
+                    `;
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
