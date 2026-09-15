@@ -212,12 +212,12 @@
     <!-- SCRIPT UTAMA & LOGIKA KUIS -->
     <script>
         // ==========================================
-        // 1. URL GOOGLE APPS SCRIPT LENGKAP
+        // 1. URL GOOGLE APPS SCRIPT
         // ==========================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUKD33bdkwtjXMDP6d3ESil5xpTWMa80-TDcwL0Rie1s3RcPCtxWSR9tvBBMyh2yepXg/exec';
 
         // ==========================================
-        // 2. DATASET KUIS (Q1 - Q15)
+        // 2. DATASET KUIS (Q1 - Q15) WITH ESSAY RUBRIC
         // ==========================================
         const quizData = [
             // Q1 - Q5: PILIHAN GANDA (1 Poin)
@@ -234,16 +234,66 @@
             { id: 9, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Harga 1 buah potong adalah Rp2.500,00 (2.500 × 1 = 2.500).', statements: [{ text: 'a. Kalimat matematika tersebut menunjukkan sifat identitas perkalian.', answer: 'Benar' }, { text: 'b. Bilangan dikali 1 hasilnya adalah bilangan itu sendiri.', answer: 'Benar' }, { text: 'c. Sifat identitas perkalian juga melibatkan bilangan 0 sebagai unsur identitas.', answer: 'Salah' }, { text: 'd. Sifat ini berbeda dengan sifat identitas penjumlahan yang melibatkan 0.', answer: 'Benar' }] },
             { id: 10, type: 'complex', category: 'Bagian II: PG Kompleks', question: 'Perhatikan pernyataan: jika dua bilangan cacah dijumlahkan/dikalikan, hasilnya berupa bilangan cacah juga.', statements: [{ text: 'a. Pernyataan menunjukkan sifat tertutup (closure) bilangan cacah.', answer: 'Benar' }, { text: 'b. Sifat tertutup berarti hasil operasi berada dalam himpunan bilangan yang sama.', answer: 'Benar' }, { text: 'c. Sifat tertutup hanya berlaku untuk operasi pengurangan bilangan cacah.', answer: 'Salah' }, { text: 'd. Jika dua bilangan cacah dikalikan, hasilnya bisa saja pecahan.', answer: 'Salah' }] },
 
-            // Q11 - Q15: URAIAN SINGKAT (4 Poin Maks)
-            { id: 11, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika total hasil penjualan semua barang dikurangi modal hasilnya akan dibagikan kepada lima anggota kelompok, berapakah yang diterima masing-masing anggota?', maxScore: 4, keywords: ['33.000', '33000'] },
-            { id: 12, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika keuntungan yang diperoleh digunakan untuk membeli 20 roti dan 20 susu kotak, apakah uang mereka cukup?', maxScore: 4, keywords: ['cukup', '5.000', '5000', '160.000'] },
-            { id: 13, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Seorang siswa membeli 2 roti, 3 susu kotak, dan 4 buah potong dengan uang Rp25.000,00. Berapakah total belanjaan dan bagaimana status uangnya (kurang/pas/sisa)?', maxScore: 4, keywords: ['29.500', '29500', 'kurang', '4.500'] },
-            { id: 14, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Salah satu anggota kelompok menggunakan bagian keuntungannya (dari soal 11) untuk membeli 2 roti dan 3 buah potong. Berapakah sisa uangnya?', maxScore: 4, keywords: ['16.500', '16500'] },
-            { id: 15, type: 'essay', category: 'Bagian III: Uraian Singkat', question: 'Jika sebelum dibagikan, disisihkan Rp30.000 dari keuntungan untuk modal berikutnya, berapakah yang diterima masing-masing dari 5 anggota sekarang?', maxScore: 4, keywords: ['27.000', '27000', '135.000'] }
+            // Q11 - Q15: URAIAN STRUCTURED (4 Poin Maksimum berdasarkan Rubrik Diketahui, Ditanya, Jawab, Jadi)
+            { 
+                id: 11, 
+                type: 'essay', 
+                category: 'Bagian III: Uraian Singkat', 
+                question: 'Jika total hasil penjualan semua barang dikurangi modal hasilnya akan dibagikan kepada lima anggota kelompok, berapakah yang diterima masing-masing anggota?', 
+                maxScore: 4,
+                rubric: {
+                    jawab: ['33.000', '33000', '165.000', '165000'],
+                    jadi: ['33.000', '33000']
+                }
+            },
+            { 
+                id: 12, 
+                type: 'essay', 
+                category: 'Bagian III: Uraian Singkat', 
+                question: 'Jika keuntungan yang diperoleh digunakan untuk membeli 20 roti dan 20 susu kotak, apakah uang mereka cukup?', 
+                maxScore: 4,
+                rubric: {
+                    jawab: ['160.000', '160000', '5.000', '5000', 'cukup'],
+                    jadi: ['cukup']
+                }
+            },
+            { 
+                id: 13, 
+                type: 'essay', 
+                category: 'Bagian III: Uraian Singkat', 
+                question: 'Seorang siswa membeli 2 roti, 3 susu kotak, dan 4 buah potong dengan uang Rp25.000,00. Berapakah total belanjaan dan bagaimana status uangnya (kurang/pas/sisa)?', 
+                maxScore: 4,
+                rubric: {
+                    jawab: ['29.500', '29500', '4.500', '4500', 'kurang'],
+                    jadi: ['29.500', '29500', 'kurang']
+                }
+            },
+            { 
+                id: 14, 
+                type: 'essay', 
+                category: 'Bagian III: Uraian Singkat', 
+                question: 'Salah satu anggota kelompok menggunakan bagian keuntungannya (dari soal 11) untuk membeli 2 roti dan 3 buah potong. Berapakah sisa uangnya?', 
+                maxScore: 4,
+                rubric: {
+                    jawab: ['16.500', '16500'],
+                    jadi: ['16.500', '16500']
+                }
+            },
+            { 
+                id: 15, 
+                type: 'essay', 
+                category: 'Bagian III: Uraian Singkat', 
+                question: 'Jika sebelum dibagikan, disisihkan Rp30.000 dari keuntungan untuk modal berikutnya, berapakah yang diterima masing-masing dari 5 anggota sekarang?', 
+                maxScore: 4,
+                rubric: {
+                    jawab: ['135.000', '135000', '27.000', '27000'],
+                    jadi: ['27.000', '27000']
+                }
+            }
         ];
 
         // ==========================================
-        // 3. STATE & AUDIO SYSTEM (ENERGETIC ARCADE RACE BGM)
+        // 3. STATE & AUDIO SYSTEM
         // ==========================================
         let currentIdx = 0;
         let userAnswers = {};
@@ -255,7 +305,6 @@
         let isBgmPlaying = false;
         let bgmStep = 0;
 
-        // Sequence Arpeggio Cepat & Energetik (Arcade Style)
         const energeticSequence = [
             { freq: 261.63, type: 'square' },   // C4
             { freq: 329.63, type: 'triangle' }, // E4
@@ -304,17 +353,11 @@
             if (isBgmPlaying) {
                 btnText.innerHTML = "Musik: On 🔥";
                 bgmStep = 0;
-                
-                // Fast Loop 170ms (~175 BPM)
                 bgmInterval = setInterval(() => {
                     const currentNote = energeticSequence[bgmStep % energeticSequence.length];
                     playSoundTone(currentNote.freq, 0.1, currentNote.type, 0.05);
-                    
-                    if (bgmStep % 4 === 0) {
-                        playSoundTone(130.81, 0.12, 'sawtooth', 0.12);
-                    } else if (bgmStep % 4 === 2) {
-                        playSoundTone(146.83, 0.1, 'triangle', 0.08);
-                    }
+                    if (bgmStep % 4 === 0) playSoundTone(130.81, 0.12, 'sawtooth', 0.12);
+                    else if (bgmStep % 4 === 2) playSoundTone(146.83, 0.1, 'triangle', 0.08);
                     bgmStep++;
                 }, 170);
             } else {
@@ -416,9 +459,38 @@
                 tableHtml += `</tbody></table></div>`;
                 container.innerHTML = tableHtml;
             } else if (q.type === 'essay') {
-                const val = userAnswers[`q${q.id}`] || '';
+                const valDik = userAnswers[`q${q.id}_diketahui`] || '';
+                const valDit = userAnswers[`q${q.id}_ditanya`] || '';
+                const valJaw = userAnswers[`q${q.id}_jawab`] || '';
+                const valJad = userAnswers[`q${q.id}_jadi`] || '';
+
                 container.innerHTML = `
-                    <textarea oninput="saveEssayAnswer(${q.id}, this.value)" rows="4" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" placeholder="Tuliskan langkah penyelesaian dan hasil akhir kamu secara jelas...">${val}</textarea>
+                    <div class="space-y-4 text-xs md:text-sm">
+                        <div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 font-medium">
+                            <i class="fas fa-lightbulb text-amber-500 mr-1.5"></i>
+                            <strong>Petunjuk Pengerjaan Soal Uraian:</strong> Isi ke-4 komponen di bawah ini secara runtut untuk mendapatkan nilai sempurna (4 poin).
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1"><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded mr-1">1</span> Diketahui:</label>
+                            <textarea oninput="saveEssayPart(${q.id}, 'diketahui', this.value)" rows="2" class="w-full p-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan data atau informasi angka yang diketahui dari soal...">${valDik}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1"><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded mr-1">2</span> Ditanya:</label>
+                            <textarea oninput="saveEssayPart(${q.id}, 'ditanya', this.value)" rows="2" class="w-full p-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan apa yang ditanyakan pada soal...">${valDit}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1"><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded mr-1">3</span> Jawab (Langkah / Cara Hitung):</label>
+                            <textarea oninput="saveEssayPart(${q.id}, 'jawab', this.value)" rows="3" class="w-full p-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan rumus dan langkah pengerjaan hitungannya hingga menemukan hasil akhir...">${valJaw}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1"><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded mr-1">4</span> Jadi (Kesimpulan):</label>
+                            <textarea oninput="saveEssayPart(${q.id}, 'jadi', this.value)" rows="2" class="w-full p-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan kalimat kesimpulan akhir (Contoh: Jadi, masing-masing anggota mendapatkan...)...">${valJad}</textarea>
+                        </div>
+                    </div>
                 `;
             }
 
@@ -434,7 +506,7 @@
 
         function saveMcAnswer(qId, val) { userAnswers[`q${qId}`] = val; }
         function saveComplexAnswer(key, val) { userAnswers[key] = val; }
-        function saveEssayAnswer(qId, val) { userAnswers[`q${qId}`] = val; }
+        function saveEssayPart(qId, part, val) { userAnswers[`q${qId}_${part}`] = val; }
 
         function navigateQuestion(direction) {
             playClickSound();
@@ -445,7 +517,7 @@
         }
 
         // ==========================================
-        // 5. PERHITUNGAN SKOR RUMUS: (SKOR / 45) * 100
+        // 5. EVALUASI SKOR RUBRIK & SEND TO GOOGLE SHEETS
         // ==========================================
         function submitFinalQuiz() {
             if (!confirm('Apakah kamu sudah yakin ingin menyelesaikan seluruh Post-Test ini?')) return;
@@ -472,18 +544,38 @@
                     itemScores[`q${q.id}`] = pts;
                     totalEarnedScore += pts;
                 } else if (q.type === 'essay') {
-                    const text = (userAnswers[`q${q.id}`] || '').toLowerCase();
                     let pts = 0;
-                    if (text.trim().length > 0) {
-                        let matched = q.keywords.some(kw => text.includes(kw));
-                        pts = matched ? 4 : 2;
+                    const dik = (userAnswers[`q${q.id}_diketahui`] || '').trim();
+                    const dit = (userAnswers[`q${q.id}_ditanya`] || '').trim();
+                    const jaw = (userAnswers[`q${q.id}_jawab`] || '').trim().toLowerCase();
+                    const jad = (userAnswers[`q${q.id}_jadi`] || '').trim().toLowerCase();
+
+                    // Rubrik Penskoran Uraian (Maksimal 4 Poin)
+                    // 1. Diketahui diisi secara lengkap & adekuat (1 pt)
+                    if (dik.length >= 3) pts += 1;
+
+                    // 2. Ditanya diisi secara tepat (1 pt)
+                    if (dit.length >= 3) pts += 1;
+
+                    // 3. Jawab (Langkah Hitung & Angka Kunci Tepat) (1 pt)
+                    if (jaw.length > 0 && q.rubric.jawab.some(kw => jaw.includes(kw))) {
+                        pts += 1;
                     }
+
+                    // 4. Jadi (Kesimpulan Akhir Tepat) (1 pt)
+                    if (jad.length > 0 && q.rubric.jadi.some(kw => jad.includes(kw))) {
+                        pts += 1;
+                    }
+
                     itemScores[`q${q.id}`] = pts;
                     totalEarnedScore += pts;
+
+                    // Gabungkan teks jawaban untuk dikirim ke Google Sheets
+                    userAnswers[`q${q.id}`] = `[Diketahui]: ${dik} | [Ditanya]: ${dit} | [Jawab]: ${jaw} | [Jadi]: ${jad}`;
                 }
             });
 
-            // RUMUS RESMI: (SKOR DIPEROLEH / 45) * 100
+            // RUMUS RESMI SKALA 100: (SKOR DIPEROLEH / 45) * 100
             const finalGrade = Math.round((totalEarnedScore / 45) * 100);
             const mins = Math.floor(timerSeconds / 60);
             const secs = timerSeconds % 60;
@@ -506,7 +598,13 @@
                 scorePoints: totalEarnedScore,
                 grade: finalGrade,
                 durationFormatted: durationFormatted,
-                ...itemScores
+                ...itemScores,
+                // Kirim juga teks jawaban uraian siswa lengkap
+                essayText11: userAnswers['q11'] || '',
+                essayText12: userAnswers['q12'] || '',
+                essayText13: userAnswers['q13'] || '',
+                essayText14: userAnswers['q14'] || '',
+                essayText15: userAnswers['q15'] || ''
             };
 
             if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
@@ -534,7 +632,7 @@
                     let answered = false;
                     if (q.type === 'mc' && userAnswers[`q${q.id}`]) answered = true;
                     if (q.type === 'complex' && userAnswers[`q${q.id}_s0`]) answered = true;
-                    if (q.type === 'essay' && userAnswers[`q${q.id}`]) answered = true;
+                    if (q.type === 'essay' && (userAnswers[`q${q.id}_diketahui`] || userAnswers[`q${q.id}_jawab`])) answered = true;
 
                     grid.innerHTML += `
                         <button onclick="renderQuestion(${idx}); togglePaletteModal();" class="p-2.5 rounded-xl font-bold text-xs border ${idx === currentIdx ? 'bg-blue-600 text-white border-blue-600' : (answered ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700')}">
