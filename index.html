@@ -28,7 +28,7 @@
             <!-- CONTROLS: AUDIO & TIMER -->
             <div class="flex items-center space-x-2">
                 <button onclick="toggleAudioBGM()" id="btnBgm" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold transition flex items-center space-x-1.5 border">
-                    <i class="fas fa-music text-indigo-500"></i>
+                    <i class="fas fa-fire text-amber-500"></i>
                     <span id="bgmStatus">Musik: Off</span>
                 </button>
                 <div id="timerDisplay" class="hidden bg-amber-100 text-amber-800 font-mono font-bold px-3 py-1 rounded-full text-xs border border-amber-300">
@@ -144,7 +144,7 @@
 
             <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium mb-6">
                 <i class="fas fa-check-circle mr-1 text-emerald-600"></i>
-                Data rekap item soal ($Q1 - Q15$) telah dikirim ke Google Sheets guru untuk analisis validitas &amp; reliabilitas.
+                Data rekap item soal (Q1 - Q15) telah dikirim ke Google Sheets guru.
             </div>
 
             <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow">
@@ -243,7 +243,7 @@
         ];
 
         // ==========================================
-        // 3. STATE & AUDIO SYSTEM (WEB AUDIO API)
+        // 3. STATE & AUDIO SYSTEM (ENERGETIC ARCADE RACE BGM)
         // ==========================================
         let currentIdx = 0;
         let userAnswers = {};
@@ -253,6 +253,19 @@
         let audioCtx = null;
         let bgmInterval = null;
         let isBgmPlaying = false;
+        let bgmStep = 0;
+
+        // Sequence Arpeggio Cepat & Energetik (Arcade Style)
+        const energeticSequence = [
+            { freq: 261.63, type: 'square' },   // C4
+            { freq: 329.63, type: 'triangle' }, // E4
+            { freq: 392.00, type: 'square' },   // G4
+            { freq: 523.25, type: 'triangle' }, // C5
+            { freq: 440.00, type: 'square' },   // A4
+            { freq: 523.25, type: 'triangle' }, // C5
+            { freq: 659.25, type: 'square' },   // E5
+            { freq: 587.33, type: 'triangle' }  // D5
+        ];
 
         function initAudioContext() {
             if (!audioCtx) {
@@ -260,14 +273,14 @@
             }
         }
 
-        function playSoundTone(freq, duration, type = 'sine') {
+        function playSoundTone(freq, duration, type = 'sine', volume = 0.08) {
             try {
                 initAudioContext();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
@@ -276,22 +289,34 @@
             } catch (e) {}
         }
 
-        function playClickSound() { playSoundTone(600, 0.08, 'triangle'); }
+        function playClickSound() { playSoundTone(600, 0.08, 'triangle', 0.1); }
         function playSuccessChime() {
-            playSoundTone(523.25, 0.1, 'sine');
-            setTimeout(() => playSoundTone(659.25, 0.15, 'sine'), 100);
+            playSoundTone(523.25, 0.1, 'sine', 0.15);
+            setTimeout(() => playSoundTone(659.25, 0.15, 'sine', 0.15), 100);
+            setTimeout(() => playSoundTone(783.99, 0.25, 'sine', 0.2), 200);
         }
 
         function toggleAudioBGM() {
             initAudioContext();
             isBgmPlaying = !isBgmPlaying;
             const btnText = document.getElementById('bgmStatus');
+            
             if (isBgmPlaying) {
-                btnText.innerText = "Musik: On";
+                btnText.innerHTML = "Musik: On 🔥";
+                bgmStep = 0;
+                
+                // Fast Loop 170ms (~175 BPM)
                 bgmInterval = setInterval(() => {
-                    playSoundTone(261.63, 0.3, 'sine');
-                    setTimeout(() => playSoundTone(329.63, 0.3, 'sine'), 400);
-                }, 1600);
+                    const currentNote = energeticSequence[bgmStep % energeticSequence.length];
+                    playSoundTone(currentNote.freq, 0.1, currentNote.type, 0.05);
+                    
+                    if (bgmStep % 4 === 0) {
+                        playSoundTone(130.81, 0.12, 'sawtooth', 0.12);
+                    } else if (bgmStep % 4 === 2) {
+                        playSoundTone(146.83, 0.1, 'triangle', 0.08);
+                    }
+                    bgmStep++;
+                }, 170);
             } else {
                 btnText.innerText = "Musik: Off";
                 clearInterval(bgmInterval);
@@ -359,7 +384,6 @@
             const container = document.getElementById('answerOptionsContainer');
             container.innerHTML = '';
 
-            // Render opsi jawaban per tipe soal
             if (q.type === 'mc') {
                 q.options.forEach(opt => {
                     const letter = opt.charAt(0);
@@ -398,7 +422,6 @@
                 `;
             }
 
-            // Update Navigasi
             document.getElementById('btnPrev').disabled = (index === 0);
             if (index === quizData.length - 1) {
                 document.getElementById('btnNext').classList.add('hidden');
@@ -446,14 +469,14 @@
                         const ans = userAnswers[`q${q.id}_s${idx}`];
                         if (ans === st.answer) pts += 1;
                     });
-                    itemScores[`q${q.id}`] = pts; // Max 4 pts per item
+                    itemScores[`q${q.id}`] = pts;
                     totalEarnedScore += pts;
                 } else if (q.type === 'essay') {
                     const text = (userAnswers[`q${q.id}`] || '').toLowerCase();
                     let pts = 0;
                     if (text.trim().length > 0) {
                         let matched = q.keywords.some(kw => text.includes(kw));
-                        pts = matched ? 4 : 2; // Memberikan poin 4 jika tepat atau 2 jika ada jawaban
+                        pts = matched ? 4 : 2;
                     }
                     itemScores[`q${q.id}`] = pts;
                     totalEarnedScore += pts;
@@ -466,7 +489,6 @@
             const secs = timerSeconds % 60;
             const durationFormatted = `${mins} menit ${secs} detik`;
 
-            // Tampilkan Layar Hasil
             document.getElementById('screenQuiz').classList.add('hidden');
             document.getElementById('screenResult').classList.remove('hidden');
             document.getElementById('finalGradeDisplay').innerText = finalGrade;
@@ -476,7 +498,6 @@
 
             speakText(`Kuis selesai. Selamat ${studentProfile.name}, nilai akhir post test kamu adalah ${finalGrade}`);
 
-            // KIRIM DATA REKAP ITEM-LEVEL KE GOOGLE SHEETS
             const payload = {
                 timestamp: new Date().toLocaleString('id-ID'),
                 sesi: 'Post-Test',
